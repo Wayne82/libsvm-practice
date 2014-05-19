@@ -7,7 +7,7 @@ import csv
 import getopt
 
 cmd_usage = """
-    usage: writelibsvmdataformat.py --inputs="/inputs/csv_files" --output="/output/lib_svm_data"
+    usage: writelibsvmdataformat.py --inputs="/inputs/folder/" --output="/output/lib_svm_data"
 """
 feature_space = 10
 
@@ -40,7 +40,7 @@ def write_libsvm_data(input_files, output_file):
 def main(argv):
     """
     :param argv: command line arguments
-    :rtype : error status, success 0 and fail 1
+    :rtype : error code, success 0 and fail 1
     """
     try:
         optlist, args = getopt.getopt(argv[1:], "hi:o:", ["help", "inputs=", "output="])
