@@ -5,6 +5,7 @@ import os
 import sys
 import csv
 import getopt
+import subprocess
 
 CMD_USAGE = """
     usage: writelibsvmdataformat.py --inputs="/inputs/folder/" --output="/output/lib_svm_data"
@@ -36,6 +37,21 @@ def write_libsvm_data(input_files, output_file):
                         output_writer.writerow(line)
                         i = 1
                         line = [label[0]]
+
+
+def check_data(data_file):
+    """
+    :param data_file: the input lib svm format data, to be verified.
+    """
+    check_py = r'../external/libsvm/tools/checkdata.py'
+    if not os.path.exists(check_py):
+        print("checkdata.py not exist.")
+        return
+
+    try:
+        subprocess.call(check_py + " " + data_file)
+    except OSError as e:
+        print("Execution check data failed: " + e.message)
 
 
 def main(argv):
@@ -80,6 +96,7 @@ def main(argv):
         return 1
 
     write_libsvm_data(input_files, output_file)
+    #check_data(output_file)
 
 
 if __name__ == "__main__":
