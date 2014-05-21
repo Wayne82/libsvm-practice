@@ -6,16 +6,17 @@ import sys
 import csv
 import getopt
 
-cmd_usage = """
+CMD_USAGE = """
     usage: writelibsvmdataformat.py --inputs="/inputs/folder/" --output="/output/lib_svm_data"
 """
-feature_space = 10
+FEATURE_SPACE = 10
 
 
 def write_libsvm_data(input_files, output_file):
     """
 
-    :param input_files: input files, each of which contains a single label at first row, and a bunch of data following
+    :param input_files: input files, each of which contains a single label at
+                        first row, and a bunch of data following
     :param output_file: output file, which meet lib svm expected data format
     """
     with open(output_file, 'wb') as output_csv_file:
@@ -31,7 +32,7 @@ def write_libsvm_data(input_files, output_file):
                     if int(row[0]) != 0:
                         line.append(':'.join([str(i), row[0]]))
                     i += 1
-                    if i > feature_space:
+                    if i > FEATURE_SPACE:
                         output_writer.writerow(line)
                         i = 1
                         line = [label[0]]
@@ -43,14 +44,17 @@ def main(argv):
     :rtype : error code, success 0 and fail 1
     """
     try:
-        optlist, args = getopt.getopt(argv[1:], "hi:o:", ["help", "inputs=", "output="])
+        optlist, _ = getopt.getopt(argv[1:], "hi:o:",
+                                   ["help", "inputs=", "output="])
     except getopt.GetoptError:
         print("Command line arguments error, please try --help for help")
         return 1
 
+    inputs = ''
+    output_file = ''
     for opt, opt_arg in optlist:
         if opt in ("-h", "--help"):
-            print cmd_usage
+            print CMD_USAGE
             return 0
         if opt in ("-i", "--inputs"):
             inputs = opt_arg
@@ -63,10 +67,10 @@ def main(argv):
     # print the messages
     print("Inputs folder: " + inputs)
     print("Output file: " + output_file)
-    assert isinstance(output_file, basestring)
-    assert isinstance(inputs, basestring)
+    assert isinstance(output_file, str)
+    assert isinstance(inputs, str)
     input_files = []
-    for root, dirs, files in os.walk(inputs):
+    for root, _, files in os.walk(inputs):
         for name in files:
             if name.endswith('.csv'):
                 input_files.append(os.path.abspath(os.path.join(root, name)))
