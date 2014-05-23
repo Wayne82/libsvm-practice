@@ -5,7 +5,7 @@
 //  Copyright (c) 2014 waynewang. All rights reserved.
 //
 #include <SignalDistancePredictor.h>
-#include <LibSvm.h>
+#include <SignalDistanceLibSvm.h>
 #include <string>
 
 const char* MODEL_NAME[SignalDistancePredictor::ePREDICT_MODEL_COUNT] = {
@@ -90,6 +90,9 @@ SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
          m_cur_node[i].value = m_signals[i];
       }
       m_cur_node[FEATURE_SPACE].index = -1;
+
+      // TODO: need to scale before prediction, using the same scale range of 
+      // the training model.
 
       // Do predict
       double predict_label = svm_predict(m_model, m_cur_node);
