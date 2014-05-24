@@ -8,57 +8,50 @@
 #define _SIGNALDISTANCEPREDICTOR_HDR_
 
 #include <SignalDistancePublic.h>
+#include <vector>
 
 // Now directly use svm c structures, interfaces here.
 // Later, better to wrapper them in a c++ class.
 
-// Forward struct
-struct svm_model;
-struct svm_node;
+// Forward declaration
+class SignalDistanceLModel;
+
+EXPORT_TEMPLATE(std::vector<double>, SignalsVec);
 
 class EXPORT_API SignalDistancePredictor
 {
 public:
-   enum { FEATURE_SPACE = 10 };
-   enum PredictModel 
-   {
-      ePREDICT_CLASSIFICATION = 0,
-      ePREDICT_REGRESSION = 1,
 
-      ePREDICT_MODEL_COUNT
-   };
-
-   SignalDistancePredictor(PredictModel model);
+   SignalDistancePredictor();
    ~SignalDistancePredictor();
    
-   // Do predict
-   // signal, is the input value
-   // dist, is the predicted distance
-   // precision, is the precision of the predict (currently now used)
-   // return true, if successfully get a prediction, otherwise false.
-   bool Predict(double signal, double* dist, double* precision);
+   // Set learn model
+   void SetLearnModel(SignalDistanceLModel* model);
 
-   // Explicitly set the path to the trained models.
-   static void SetModelsPath(const char* models_path);
+   /**
+   // Do predict
+   //
+   // @param signal is the input value
+   // @param dist is the predicted distance
+   // @param precision is the precision of the predict (currently now used)
+   // @return true if successfully get a prediction, otherwise false.
+   */
+   bool Predict(double signal, double* dist, double* precision);
 
 private:
    // Do not allow copy and assignment
    SignalDistancePredictor(const SignalDistancePredictor& other);
    SignalDistancePredictor& operator=(const SignalDistancePredictor& other);
 
-   // Initalize the svm model, which can be used for all following predictions.
-   bool Init(PredictModel model);
-   // Terminate, and clean up.
-   void Term();
+   // Initialize predictor
+   void Init();
 
 private:
-   double m_signals[FEATURE_SPACE];
-   unsigned int m_count; 
+   SignalsVec m_signals;
+   unsigned int m_signals_dim;
+   unsigned int m_signals_count; 
 
-   svm_model* m_model;
-   svm_node* m_cur_node;
-
-   static const char* m_models_path;
+   SignalDistanceLModel* m_model;
 };
 
 #endif // _SIGNALDISTANCEPREDICTOR_HDR_

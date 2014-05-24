@@ -6,98 +6,100 @@
 //
 #include <SignalDistancePredictor.h>
 #include <SignalDistanceLibSvm.h>
-#include <string>
+#include <SignalDistanceLModel.h>
 
-const char* MODEL_NAME[SignalDistancePredictor::ePREDICT_MODEL_COUNT] = {
-   "signal_distance_classification.model",
-   "signal_distance_regression.model"
-};
-
-const char* SignalDistancePredictor::m_models_path = nullptr;
-
-SignalDistancePredictor::SignalDistancePredictor(PredictModel model)
+SignalDistancePredictor::SignalDistancePredictor()
+   : m_signals_dim(0)
+   , m_signals_count(0)
+   , m_model(nullptr)
 {
-   Init(model);
+   
 }
 
 SignalDistancePredictor::~SignalDistancePredictor()
 {
-   Term();
+   if (m_model != nullptr)
+   {
+      m_model->UnRef();
+      m_model = nullptr;
+   }
 }
 
 void 
-SignalDistancePredictor::SetModelsPath(const char* models_path)
+SignalDistancePredictor::SetLearnModel(SignalDistanceLModel* model)
 {
-   m_models_path = models_path;
-}
+   if (m_model == model)
+      return;
 
-bool
-SignalDistancePredictor::Init(PredictModel model)
-{
-   if (m_models_path == nullptr)
-      return false;
+   if (m_model != nullptr)
+      m_model->UnRef();
 
-   m_count = 0;
-   m_model = nullptr;
-   m_cur_node = nullptr;
-   memset(m_signals, 0, sizeof(double)*FEATURE_SPACE);
+   m_model = model;
 
-   char name[1024];
-   strcpy_s(name, m_models_path);
-   strcat_s(name, MODEL_NAME[model]);
-   m_model = svm_load_model(name);
-   m_cur_node = new svm_node[FEATURE_SPACE+1];
+   if (m_model)
+      m_model->Ref();
 
-   return m_model != nullptr;
+   // Then, initialize predictor as the learn model is setup or changed.
+   Init();
 }
 
 void 
-SignalDistancePredictor::Term()
+SignalDistancePredictor::Init()
 {
-   svm_free_and_destroy_model(&m_model);
-   delete []m_cur_node;
-   m_cur_node = nullptr;
+   // m_model should never be null at this moment.
+   m_signals_count = 0;
+   m_signals_dim = m_model->GetSignalsDimension();
+   m_signals.reserve(m_signals_dim);
 }
 
 bool
 SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
 {
-   if (dist == nullptr)
-      return false;
+   bool success = false;
 
-   if (m_count < FEATURE_SPACE)
+   // If haven't set up learn model, or the learn model is not valid,
+   // then return earlier.
+   if (m_model == nullptr || 
+      m_model->GetSvmModel() == nullptr)
+      return success;
+
+   if (dist == nullptr)
+      return success;
+
+   if (m_signals_count < m_signals_dim)
    {
       // Can't predict if the given samples are less than the feature space.
-      m_signals[m_count] = signal;
-      m_count++;
+      m_signals[m_signals_count] = signal;
       *dist = 0.0;
-      return false;
    }
    else 
    {
       // Push new signal and pop the oldest one.
-      if (m_count > FEATURE_SPACE)
+      if (m_signals_count > m_signals_dim)
       {
-         for (int i=0; i<FEATURE_SPACE-1; ++i)
+         for (unsigned int i=0; i<m_signals_dim-1; ++i)
             m_signals[i] = m_signals[i+1];
-         m_signals[FEATURE_SPACE-1] = signal;
+         m_signals[m_signals_dim-1] = signal;
       }
 
       // Construct svm node, m_cur_node shouldn't be nullptr.
-      for (int i=0; i<FEATURE_SPACE; ++i)
+      svm_node* nodes = m_model->GetSignalsNodes();
+      for (unsigned int i=0; i<m_signals_dim; ++i)
       {
-         m_cur_node[i].index = i+1;
-         m_cur_node[i].value = m_signals[i];
+         nodes[i].index = i+1;
+         nodes[i].value = m_signals[i];
       }
-      m_cur_node[FEATURE_SPACE].index = -1;
 
       // TODO: need to scale before prediction, using the same scale range of 
       // the training model.
 
       // Do predict
-      double predict_label = svm_predict(m_model, m_cur_node);
+      double predict_label = svm_predict(m_model->GetSvmModel(), nodes);
       
       *dist = predict_label;
-      return true;
+      success = true;
    }
+   m_signals_count++;
+   
+   return success;
 }
