@@ -21,17 +21,12 @@ class EXPORT_API SignalDistanceLModel
 public:
    SignalDistanceLModel(const char *model_path, const char *scale_range_path);
 
-   // Assume the learn model is trained from the samples of 10 dimension space.
-   // ??? Need to get the dimension from the learn model automatically.
-   // ??? But seems libsvm doesn't retain such information, need to figure out other ways.
-   enum { FEATURE_SPACE = 10 };
-
    // Interfaces to access status of the model
    int GetSvmModelType() const;
    const svm_model* GetSvmModel() const 
    { return m_model; }
    unsigned int GetSvmFeatureSpace() const
-   { return FEATURE_SPACE; }
+   { return m_feature_space_size; }
    svm_node* GetSvmNodes() const
    { return m_nodes; }
    bool IsValidModel() const
@@ -82,6 +77,7 @@ private:
    // scale range for each feature
    FeatureVec m_feature_min;
    FeatureVec m_feature_max;
+   unsigned int m_feature_space_size;
    
    unsigned int m_ref_count;
 };

@@ -23,4 +23,7 @@
 #define EXPORT_TEMPLATE(a, b) typedef a b;
 #endif
 
+#define libsvm_max(x,y) (((x)>(y))?(x):(y))
+#define libsvm_min(x,y) (((x)<(y))?(x):(y))
+
 #endif // _SIGNALDISTANCEPUBLIC_
