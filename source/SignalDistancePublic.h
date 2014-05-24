@@ -8,6 +8,8 @@
 #ifndef _SIGNALDISTANCEPUBLIC_
 #define _SIGNALDISTANCEPUBLIC_
 
+#include <vector>
+
 #if defined(LIBSVM_IS_DLL)
 #ifdef LIBSVM_BUILD_DLL
 #define EXPORT_API _declspec(dllexport)

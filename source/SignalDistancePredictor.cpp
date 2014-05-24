@@ -48,23 +48,26 @@ SignalDistancePredictor::Init()
 {
    // m_model should never be null at this moment.
    m_signals_count = 0;
-   m_signals_dim = m_model->GetSignalsDimension();
+   m_signals_dim = m_model->GetSvmFeatureSpace();
    m_signals.reserve(m_signals_dim);
 }
 
 bool
 SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
 {
-   bool success = false;
+   // If haven't set up learn model, return directly.
+   if (m_model == nullptr)
+      return false;
 
-   // If haven't set up learn model, or the learn model is not valid,
-   // then return earlier.
-   if (m_model == nullptr || 
-      m_model->GetSvmModel() == nullptr)
-      return success;
+   // Or the learn model is not valid, return directly.
+   if (m_model->IsValidModel() || 
+      m_model->IsValidScaleRange())
+      return false;
 
    if (dist == nullptr)
-      return success;
+      return false;
+
+   bool success = false;
 
    if (m_signals_count < m_signals_dim)
    {
@@ -83,7 +86,7 @@ SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
       }
 
       // Construct svm node, m_cur_node shouldn't be nullptr.
-      svm_node* nodes = m_model->GetSignalsNodes();
+      svm_node* nodes = m_model->GetSvmNodes();
       for (unsigned int i=0; i<m_signals_dim; ++i)
       {
          nodes[i].index = i+1;

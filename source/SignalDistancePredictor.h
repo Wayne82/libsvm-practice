@@ -8,7 +8,6 @@
 #define _SIGNALDISTANCEPREDICTOR_HDR_
 
 #include <SignalDistancePublic.h>
-#include <vector>
 
 // Now directly use svm c structures, interfaces here.
 // Later, better to wrapper them in a c++ class.
@@ -16,7 +15,7 @@
 // Forward declaration
 class SignalDistanceLModel;
 
-EXPORT_TEMPLATE(std::vector<double>, SignalsVec);
+EXPORT_TEMPLATE(std::vector<double>, SignalVec);
 
 class EXPORT_API SignalDistancePredictor
 {
@@ -47,7 +46,7 @@ private:
    void Init();
 
 private:
-   SignalsVec m_signals;
+   SignalVec m_signals;
    unsigned int m_signals_dim;
    unsigned int m_signals_count; 
 
