@@ -60,8 +60,7 @@ SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
       return false;
 
    // Or the learn model is not valid, return directly.
-   if (m_model->IsValidModel() || 
-      m_model->IsValidScaleRange())
+   if (m_model->IsValidModel())
       return false;
 
    if (dist == nullptr)
@@ -89,12 +88,14 @@ SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
       svm_node* nodes = m_model->GetSvmNodes();
       for (unsigned int i=0; i<m_signals_dim; ++i)
       {
-         nodes[i].index = i+1;
-         nodes[i].value = m_signals[i];
+         // Scale data by the scale range from the given model.
+         double scaled_value = m_model->ScaleAttributeAtIndex(m_signals[i], i+1);
+         if (scaled_value != 0)
+         {
+            nodes[i].index = i+1;
+            nodes[i].value = scaled_value;
+         }
       }
-
-      // TODO: need to scale before prediction, using the same scale range of 
-      // the training model.
 
       // Do predict
       double predict_label = svm_predict(m_model->GetSvmModel(), nodes);
@@ -103,6 +104,7 @@ SignalDistancePredictor::Predict(double signal, double* dist, double* precision)
       success = true;
    }
    m_signals_count++;
+   (void)(precision); // currently unused parameter.
    
    return success;
 }

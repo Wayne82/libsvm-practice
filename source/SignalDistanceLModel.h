@@ -30,8 +30,7 @@ public:
    svm_node* GetSvmNodes() const
    { return m_nodes; }
    bool IsValidModel() const
-   { return m_model != nullptr; }
-   bool IsValidScaleRange() const;
+   { return m_model != nullptr && m_feature_space_size != 0; }
 
    // Scale a attribute at given index
    double ScaleAttributeAtIndex(double attri, unsigned int index);
@@ -64,7 +63,7 @@ private:
 
    // Extracting scale range, which is used by the learn model
    // we need them to scale samples before predicting.
-   void ExtractScaleRange();
+   bool ExtractScaleRange();
 
 private:
    svm_model *m_model;
@@ -77,6 +76,8 @@ private:
    // scale range for each feature
    FeatureVec m_feature_min;
    FeatureVec m_feature_max;
+   double m_feature_lower;
+   double m_feature_upper;
    unsigned int m_feature_space_size;
    
    unsigned int m_ref_count;

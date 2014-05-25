@@ -72,6 +72,8 @@ SignalDistanceLModel::SignalDistanceLModel(const char* model_path, const char *s
    , m_nodes(nullptr)
    , m_model_path(new std::string(model_path))
    , m_scale_range_path(new std::string(scale_range_path))
+   , m_feature_lower(-1.0)
+   , m_feature_upper(1.0)
    , m_feature_space_size(0)
    , m_ref_count(0)
 {
@@ -79,11 +81,12 @@ SignalDistanceLModel::SignalDistanceLModel(const char* model_path, const char *s
    m_model = svm_load_model(model_path);
 
    // Get scale range for scaling samples.
-   ExtractScaleRange();
-
-   // Initialize svm node for a sample
-   m_nodes = new svm_node[m_feature_space_size+1];
-   m_nodes[m_feature_space_size].index = -1;
+   if (ExtractScaleRange())
+   {
+      // Initialize svm node for a sample
+      m_nodes = new svm_node[m_feature_space_size+1];
+      m_nodes[m_feature_space_size].index = -1;
+   }
 }
 
 SignalDistanceLModel::~SignalDistanceLModel()
@@ -110,12 +113,6 @@ SignalDistanceLModel::GetSvmModelType() const
 }
 
 bool 
-SignalDistanceLModel::IsValidScaleRange() const
-{
-   return m_feature_min.size() > 0 && m_feature_max.size() > 0;
-}
-
-void 
 SignalDistanceLModel::ExtractScaleRange()
 {
    m_feature_min.clear();
@@ -123,46 +120,47 @@ SignalDistanceLModel::ExtractScaleRange()
 
    // In theory scale range path should always exist
    if (m_scale_range_path == nullptr)
-      return; 
+      return false; 
 
    FileHandle scale_file(m_scale_range_path->c_str());
    // If not valid, return directly.
    if (!scale_file.IsValid())
-      return;
-
-   const char* line = scale_file.ReadLine();
-   if (line == nullptr)
-      return;
+      return false;
 
    // Assume the scale file only scale attributes, not target label.
-   if (line[0] == 'x')
-   {
-      scale_file.ReadLine();
-   }
-   else 
-   {
-      return;
-   }
+   // So, directly check 'x', otherwise return directly.
+   const char* line = scale_file.ReadLine();
+   if (line == nullptr || line[0] != 'x') 
+      return false;
+
+   // Then, let's get x lower and upper value
+   line = scale_file.ReadLine();
+   if (sscanf_s(line, "%1f, %1f", &m_feature_lower, &m_feature_upper) != 2)
+      return false;
 
    // Get max index, we assume its equal to feature space size.
    int max_index = 0;
    int cur_index = 0;
-   line = scale_file.ReadLine();
    while (line != nullptr && 
           sscanf_s(line, "%d %*f %*f\n", &cur_index) == 1)
    {
       max_index = libsvm_max(max_index, cur_index);
       line = scale_file.ReadLine();
    }
-   scale_file.Rewind();
+   if (max_index == 0)
+      return false;
+   m_feature_space_size = max_index;
    m_feature_max.reserve(max_index+1);
    m_feature_min.reserve(max_index+1);
 
-   // Read data
-   scale_file.ReadLine(); // Read x.
-   scale_file.ReadLine(); // Read x lower, upper value.
-   line = scale_file.ReadLine(); // Read min, max value for each index.
+   // Rewind file
+   scale_file.Rewind();
+
+   // Read min/max value for each index of attribute.
+   scale_file.ReadLine(); // Skip 'x'
+   scale_file.ReadLine(); // Skip x lower, upper value.
    double fmin, fmax;
+   line = scale_file.ReadLine(); // Read min, max value for each index.
    while (line != nullptr && 
           sscanf_s(line, "%d %1f %1f", &cur_index, &fmin, &fmax) == 3)
    {
@@ -171,11 +169,22 @@ SignalDistanceLModel::ExtractScaleRange()
       line = scale_file.ReadLine();
    }
 
+   return true;
 }
 
 double 
 SignalDistanceLModel::ScaleAttributeAtIndex(double attri, unsigned int index)
 {
-   // TO IMPLEMENT:
-   return attri;
+   // Index should be in the range of [1, m_feature_space_size]
+   double out_value = 0.0;
+   if (attri == m_feature_min[index])
+      out_value = m_feature_lower;
+   else if (attri == m_feature_max[index])
+      out_value = m_feature_upper;
+   else 
+      out_value = m_feature_lower + 
+                  (m_feature_upper - m_feature_lower) * 
+                  (attri - m_feature_min[index]) / (m_feature_max[index] - m_feature_min[index]);
+
+   return out_value;
 }
