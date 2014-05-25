@@ -8,8 +8,11 @@ import getopt
 import subprocess
 
 CMD_USAGE = """
-    usage: writelibsvmdataformat.py --inputs="/inputs/folder/" --output="/output/lib_svm_data"
+    usage: writelibsvmdataformat.py --inputs="/inputs/folder/" --output="/output/lib_svm_data" <options>
+    <options>:
+             -f, --features specify the feature space size, default is 10
 """
+# by default feature space to be 10
 FEATURE_SPACE = 10
 
 
@@ -60,8 +63,8 @@ def main(argv):
     :rtype : error code, success 0 and fail 1
     """
     try:
-        optlist, _ = getopt.getopt(argv[1:], "hi:o:",
-                                   ["help", "inputs=", "output="])
+        optlist, _ = getopt.getopt(argv[1:], "hi:o:f:",
+                                   ["help", "inputs=", "output=", "features="])
     except getopt.GetoptError:
         print("Command line arguments error, please try --help for help")
         return 1
@@ -79,10 +82,14 @@ def main(argv):
                 return 1
         elif opt in ("-o", "--output"):
             output_file = opt_arg
+        elif opt in ("-f", "--features"):
+            global FEATURE_SPACE
+            FEATURE_SPACE = int(opt_arg)
 
     # print the messages
     print("Inputs folder: " + inputs)
     print("Output file: " + output_file)
+    print("Feature space size: " + str(FEATURE_SPACE))
     assert isinstance(output_file, str)
     assert isinstance(inputs, str)
     input_files = []
