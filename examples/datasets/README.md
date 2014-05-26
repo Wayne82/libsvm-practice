@@ -5,4 +5,4 @@ The format is,
 * The following rows are received signal and the distance read from 3party sdk, which is not used at all.
 
 The file name is in the format of 
-* <uuid>-<major version>-<minor version>-[filter].csv (the "filter" key words indicate whether the signal get filtered or not.)
+* [uuid]-[major version]-[minor version]-[filter].csv (the "filter" key words is optional, which indicates whether the signal get filtered or not.)
