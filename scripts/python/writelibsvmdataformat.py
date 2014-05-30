@@ -103,7 +103,8 @@ def main(argv):
         return 1
 
     write_libsvm_data(input_files, output_file)
-    #check_data(output_file)
+    check_data(output_file)
+    return 0
 
 
 if __name__ == "__main__":
