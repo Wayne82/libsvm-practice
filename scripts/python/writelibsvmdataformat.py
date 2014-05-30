@@ -46,13 +46,13 @@ def check_data(data_file):
     """
     :param data_file: the input lib svm format data, to be verified.
     """
-    check_py = r'../external/libsvm/tools/checkdata.py'
+    check_py = r'../../external/libsvm/tools/checkdata.py'
     if not os.path.exists(check_py):
         print("checkdata.py not exist.")
         return
 
     try:
-        subprocess.call(check_py + " " + data_file)
+        subprocess.call([os.path.abspath(check_py), data_file], shell=True)
     except OSError as e:
         print("Execution check data failed: " + e.message)
 
