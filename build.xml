@@ -15,6 +15,9 @@
 	<property name="build.dir" value="${basedir}/build/${platform_compiler}/${arch}/${build.dir.suffix}"/>
 	<property name="bin.dir" value="${build.dir}/bin"/>
 	<property name="output.dir" value="${bin.dir}/${output.dir.suffix}"/>
+	<property name="artifacts.dir" value="${basedir}/artifacts"/>
+	<property name="source.dir" value="${basedir}/source"/>
+	<property name="external.dir" value="${basedir}/external"/>
 
 	<echo message=""/>
 	<echo message="*** Common Settings ***"/>
@@ -29,6 +32,7 @@
 	<echo message=""/>
 	<echo message="Build Dir:     ${build.dir}"/>
 	<echo message="Output Dir:    ${output.dir}"/>
+	<echo message="Artifacts Dir: ${artifacts.dir}"/>
 	<echo message=""/>	
 	
 	<target name="check_ant">
@@ -62,6 +66,15 @@
   
   <target name="delete_build"
 		  description="Removes all builds">
+	<delete dir="build"/>
+  </target>
+  
+  <target name="delete_artifacts" 
+		  description="Remove artifacts dir.">
+	<delete dir="${artifacts.dir}"/>
+  </target>
+  
+  <target name="delete" depends="delete_build, delete_artifacts">
 	<delete dir="build"/>
   </target>
   

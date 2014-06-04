@@ -29,4 +29,28 @@
     </exec>
   </target>
  
-  </project>
+  <target name="publish_component">	
+	<copy todir="${artifacts.dir}/tools">
+		<fileset dir="${external.dir}/libsvm/windows">
+			<include name="*.*"/>
+		</fileset>
+	</copy>
+	
+	<copy todir="${artifacts.dir}/bin/${platform_compiler}/${arch}/${config}">
+		<fileset dir="${output.dir}">
+			<include name="*.dll"/>
+			<include name="*.lib"/>
+			<include name="*.pdb"/>
+		</fileset>
+	</copy>
+	
+	<copy todir="${artifacts.dir}/include">
+		<fileset dir="${source.dir}">
+			<include name="SignalDistancePublic.h"/>
+			<include name="SignalDistanceLModel.h"/>
+			<include name="SignalDistancePredictor.h"/>
+		</fileset>
+	</copy>	
+  </target>
+  
+</project>
