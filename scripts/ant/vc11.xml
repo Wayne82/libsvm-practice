@@ -14,7 +14,7 @@
 	  <arg value="/m"/>
       <arg value="/nologo"/>
       <arg value="/p:Configuration=${config}"/>
-      <arg value="Trilateration.sln"/>
+      <arg value="Libsvm-Practice.sln"/>
     </exec>
   </target>
   
@@ -25,14 +25,25 @@
       <arg value="/nologo"/>
       <arg value="/p:Configuration=${config}"/>
       <arg value="/t:Clean"/>
-      <arg value="Trilateration.sln"/>
+      <arg value="Libsvm-Practice.sln"/>
     </exec>
   </target>
  
-  <target name="publish_component">	
+  <target name="publish_component" depends="build">	
 	<copy todir="${artifacts.dir}/tools">
 		<fileset dir="${external.dir}/libsvm/windows">
 			<include name="*.*"/>
+		</fileset>
+		<fileset dir="${external.dir}/libsvm/tools">
+			<include name="grid.py"/>
+			<include name="checkdata.py"/>
+		</fileset>
+	</copy>
+	
+	<copy todir="${artifacts.dir}/scripts">
+		<fileset dir="${script.dir}/python">
+			<include name="*.py"/>
+			<include name="*.bat"/>
 		</fileset>
 	</copy>
 	

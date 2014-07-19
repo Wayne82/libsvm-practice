@@ -18,6 +18,7 @@
 	<property name="artifacts.dir" value="${basedir}/artifacts"/>
 	<property name="source.dir" value="${basedir}/source"/>
 	<property name="external.dir" value="${basedir}/external"/>
+	<property name="script.dir" value="${basedir}/scripts"/>
 
 	<echo message=""/>
 	<echo message="*** Common Settings ***"/>
